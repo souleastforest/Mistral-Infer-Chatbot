@@ -1,0 +1,14 @@
+# 通用忽略
+# Ignore .idea directory
+.idea/
+
+# Ignore pycache directory
+__pycache__/
+
+# Ignore compiled Python files
+*.pyc
+
+# Ignore virtual environment
+venv/
+
+run/logs/*

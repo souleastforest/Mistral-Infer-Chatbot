@@ -1,0 +1,2 @@
+export TORCH_CUDA_ARCH_LIST="7.5"
+/mnt/hdd/llm-proj/codestral_mamba/venv/bin/python /mnt/hdd/llm-proj/codestral_mamba/chat.py /mnt/hdd/llm-proj/model/mistralai/Mamba-Codestral-7B-v0.1 --instruct  --max_tokens 256

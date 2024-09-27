@@ -1,0 +1,2 @@
+export PYTHONPATH=/mnt/hdd/llm-proj/codestral_mamba
+/mnt/hdd/llm-proj/codestral_mamba/venv/bin/python /mnt/hdd/llm-proj/codestral_mamba/fastapi_server.py /mnt/hdd/llm-proj/model/mistralai/Mamba-Codestral-7B-v0.1 --max_tokens 4096 --temperature 0.35 --dtype float16

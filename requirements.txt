@@ -1,0 +1,9 @@
+mistral_inference==1.4.0
+mamba-ssm==2.2.2
+causal-conv1d==1.4.0
+wheel
+packaging
+transformers
+
+fastapi==0.115.0
+uvicorn==0.30.6
