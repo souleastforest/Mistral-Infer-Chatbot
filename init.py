@@ -28,4 +28,6 @@ def parse_args():
     parser.add_argument("--max_tokens", type=int, default=256, help="Maximum number of tokens to generate")
     parser.add_argument("--temperature", type=float, default=0.35, help="Temperature for generation")
     parser.add_argument("--dtype", type=str, default="float16", help="Data type for model (e.g., float32, float16, bf16)")
+    parser.add_argument("--host", type=str, default="0.0.0.0", help="Host to run the server on")
+    parser.add_argument("--port", type=int, default=18000, help="Port to run the server on")
     return parser.parse_args()

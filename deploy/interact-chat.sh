@@ -18,4 +18,4 @@ fi
 export TORCH_CUDA_ARCH_LIST="7.5"
 
 # 运行 Python 脚本
-./venv/bin/python chat.py "$1" --instruct --max_tokens "$2"
+./venv/bin/python ../chat.py "$1" --instruct --max_tokens "$2"

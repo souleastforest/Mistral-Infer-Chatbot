@@ -1,26 +1,26 @@
- # Codestral Mamba Server
+# Codestral Mamba Server
 
-Mistral AI model server based on Mamba architecture
+基于 Mamba 架构的 Mistral AI 模型服务器
 
-## System Requirements
+## 环境要求
 
-- Linux operating system
+- Linux 操作系统
 - Python 3.10+
 
-## Getting Started
+## 开始使用
 
-1. First, download the model supported by the mistral-inference framework from:
+1. 首先，从以下地址下载mistral-inference推理框架支持的模型：
    https://github.com/mistralai/mistral-inference
 
-2. Create and activate a virtual environment:
+2. 创建并激活虚拟环境：
 
-```bash
+```
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-3. Create a `.env` file and set the environment variables:
+3. 创建 `.env` 文件并设置环境变量：
 
 ```
 MODEL_PATH=/path/to/your/model
@@ -31,43 +31,45 @@ HOST=0.0.0.0
 PORT=18090
 ```
 
-> The choice of DTYPE depends on your GPU model. For Turing architecture GPUs, use float16; for Ampere architecture GPUs, use bfloat16.
-> For example, use float16 for Turing architecture RTX 2080ti 22G, and bfloat16 for Ampere architecture RTX 3090 24G.
+> DTYPE的选择根据你的显卡模型决定，对于turing架构的显卡，使用float16，对于ampere架构的显卡，使用bfloat16。
+> 例如，turing架构的rtx 2080ti 22G 使用float16，ampere架构的rtx 3090 24G 可以使用bfloat16。
 
-## Usage
+## 使用方法
 
-Make sure to modify the paths in the scripts according to your environment.
+确保根据您的环境修改脚本中的路径。
 
-### Command-line Chat:
+## 命令行聊天：
 
-```bash
+```
 bash interact-chat.sh <model_path> <max_tokens>
 ```
 
-### Start the Server:
+## 启动服务器：
 
-This script will read the environment variables from the .env file and start the server.
+这个脚本会读取 .env 文件中的环境变量，并启动服务器。    
 
-```bash
+```
 bash deploy/run-server.sh
 ```
 
-Or modify the script according to your needs.
+或者根据你的需要修改脚本。
 
-### Request Example
+### 请求示例
 
-```bash
+```
+
 curl -X POST "http://localhost:18000/v1/engines/completions" -H "Content-Type: application/json" -d '{
   "model": "mistral",
   "prompt": "How expensive would it be to ask a window cleaner to clean all windows in Paris. Make a reasonable guess in US Dollar.",
   "max_tokens": 256,
   "temperature": 0.35
 }'
+
 ```
 
-Response example:
+响应示例：
 
-```json
+```
 {
     "id": "cmpl-36d9ad2c-7d02-11ef-a77d-aa1c040f3499",
     "object": "text_completion",
@@ -89,4 +91,4 @@ Response example:
 }
 ```
 
-Enjoy using it!
+享受使用吧！

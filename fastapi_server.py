@@ -119,4 +119,4 @@ async def process_queue():
 if __name__ == "__main__":
     import uvicorn
     logger.info("Starting FastAPI server")
-    uvicorn.run("codestral_mamba.fastapi_server:app", host="0.0.0.0", port=18000)
+    uvicorn.run("fastapi_server:app", host=args.host, port=args.port)
