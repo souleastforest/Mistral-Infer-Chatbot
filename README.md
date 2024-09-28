@@ -54,7 +54,31 @@ bash deploy/run-server.sh
 
 Or modify the script according to your needs.
 
-### Request Example
+### Request 
+
+#### Get Models
+
+```bash
+curl -X GET "http://localhost:18000/v1/models"
+```
+
+Response example:
+
+```json
+{
+    "object": "list",
+    "data": [
+        {
+            "id": "Mamba-Codestral-7B-v0.1",
+            "object": "model",
+            "owned_by": "mistralai",
+            "permission": []
+        }
+    ]
+}
+```
+
+#### Text Completion
 
 ```bash
 curl -X POST "http://localhost:18000/v1/engines/completions" -H "Content-Type: application/json" -d '{
@@ -85,6 +109,50 @@ Response example:
         "prompt_tokens": 35,
         "completion_tokens": 113,
         "total_tokens": 148
+    }
+}
+```
+
+#### Chat Completion
+
+```bash
+curl -X POST "http://localhost:18000/v1/chat/completions" \
+     -H "Content-Type: application/json" \
+     -d '{
+  "model": "mistral",
+  "messages": [
+    {"role": "system", "content": "You are a helpful assistant."},
+    {"role": "user", "content": "What is the capital of France?"},
+    {"role": "assistant", "content": "The capital of France is Paris."},
+    {"role": "user", "content": "What is its population?"}
+  ],
+  "max_tokens": 256,
+  "temperature": 0.35
+}'
+```
+
+Response example:
+
+```json
+{
+    "id": "chatcmpl-26da2cb0-7db8-11ef-bcc5-aa1c040f3499",
+    "object": "chat.completion",
+    "created": 1727541535,
+    "model": "mistral",
+    "choices": [
+        {
+            "message": {
+                "role": "assistant",
+                "content": "The population of Paris is approximately 2.14 million people."
+            },
+            "index": 0,
+            "finish_reason": "stop"
+        }
+    ],
+    "usage": {
+        "prompt_tokens": 43,
+        "completion_tokens": 15,
+        "total_tokens": 58
     }
 }
 ```
