@@ -59,7 +59,7 @@ Or modify the script according to your needs.
 #### Get Models
 
 ```bash
-curl -X GET "http://localhost:18000/v1/models"
+curl -X GET "http://localhost:18090/v1/models"
 ```
 
 Response example:
@@ -81,7 +81,7 @@ Response example:
 #### Text Completion
 
 ```bash
-curl -X POST "http://localhost:18000/v1/engines/completions" -H "Content-Type: application/json" -d '{
+curl -X POST "http://localhost:18090/v1/engines/completions" -H "Content-Type: application/json" -d '{
   "model": "mistral",
   "prompt": "How expensive would it be to ask a window cleaner to clean all windows in Paris. Make a reasonable guess in US Dollar.",
   "max_tokens": 256,
@@ -116,7 +116,7 @@ Response example:
 #### Chat Completion
 
 ```bash
-curl -X POST "http://localhost:18000/v1/chat/completions" \
+curl -X POST "http://localhost:18090/v1/chat/completions" \
      -H "Content-Type: application/json" \
      -d '{
   "model": "mistral",
