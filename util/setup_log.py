@@ -3,7 +3,7 @@ import logging
 from logging import handlers
 from datetime import time
 
-from codestral_mamba.config.settings import settings
+from config.settings import settings
 
 
 format_string = "%(asctime)s,%(levelname)s,%(pathname)s,%(module)s,%(funcName)s[%(lineno)d]:%(message)s"

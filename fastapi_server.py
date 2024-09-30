@@ -1,5 +1,6 @@
 import os
 import sys
+import textwrap
 import time
 import uuid
 import asyncio
@@ -9,20 +10,14 @@ from typing import List
 
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from mistral_inference.generate import generate_mamba
-from mistral_common.protocol.instruct.messages import UserMessage, ChatMessage
+from mistral_common.protocol.instruct.messages import UserMessage, ChatMessage, SystemMessage, AssistantMessage
 from mistral_common.protocol.instruct.request import ChatCompletionRequest
 
-# 设置工作目录
-WORK_DIR = "/mnt/hdd/llm-proj/codestral_mamba"
-os.chdir(WORK_DIR)
+import uvicorn
 
-# 将根目录添加到 Python 的模块搜索路径中
-ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.append(ROOT_DIR)
-
-from codestral_mamba.init import parse_args
-from codestral_mamba.util.lifespan import lifespan
-from codestral_mamba.qa_pairs import QAPairs
+from init import parse_args
+from util.lifespan import lifespan
+from qa_pairs import QAPairs
 
 # setup_log()
 logger = logging.getLogger(__name__)
@@ -60,7 +55,6 @@ class ChatCompletionResponse(BaseModel):
 qa_pairs = QAPairs()
 
 args = parse_args()
-logger = logging.getLogger(__name__)
 
 class ModelInfo(BaseModel):
     id: str
@@ -106,7 +100,7 @@ async def create_completion(request: ChatRequest):
     
 
     logger.info(f"Received prompt: {request.prompt}")
-    completion_request = ChatCompletionRequest(
+    completion_request = CustomChatCompletionRequest(
         model=request.model,
         messages=[UserMessage(content=request.prompt)],
         max_tokens=request.max_tokens,
@@ -137,9 +131,19 @@ async def create_chat_completion(request: CustomChatCompletionRequest):
         logger.warning("Request queue is full")
         raise HTTPException(status_code=429, detail="Too many requests, please try again later.")
     
+    # message_list = get_chat_template(request.messages)
+    messages_list = check_messages(request.messages)
+    logger.info(f"Message list: {messages_list}")
+    completion_request = CustomChatCompletionRequest(
+        model=request.model,
+        messages=messages_list,
+        max_tokens=request.max_tokens,
+        temperature=request.temperature,
+        dtype=request.dtype
+    )
     
     response_future = asyncio.Future()
-    await request_queue.put((request, response_future))
+    await request_queue.put((completion_request, response_future))
     asyncio.create_task(process_queue())
     response_body = await response_future
     response_text, usage = response_body
@@ -149,7 +153,7 @@ async def create_chat_completion(request: CustomChatCompletionRequest):
         object="chat.completion",
         created=int(time.time()),
         model=request.model,
-        choices=[{"message": {"role": "assistant", "content": response_text}, "index": 0, "finish_reason": "stop"}],
+        choices=[{"message": {"role": "assistant", "content": response_text}, "index": 0, "finish_reason": "stop", "logprobs": None}],
         usage=usage
     )
     logger.info(f"Generated chat completion response: {response}")
@@ -161,7 +165,32 @@ async def list_models():
     model_info = ModelInfo(id=model_name)
     return ModelsResponse(data=[model_info])
 
-def get_chat_template(messages: List[ChatMessage]) -> str:
+
+def check_messages(messages: List[ChatMessage]) -> List[ChatMessage]:
+    if len(messages) == 0:
+        raise HTTPException(status_code=400, detail="Messages list is empty")
+    if len(messages) == 1:
+        if messages[0].role != "system":
+            # 设置默认的 system message
+            messages.insert(0, SystemMessage(content="You are a helpful assistant."))
+    if len(messages) == 2:
+        if messages[0].role != "system":
+            # 设置默认的 system message
+            messages.insert(0, SystemMessage(content="You are a helpful assistant."))
+        if messages[1].role != "user":
+            raise HTTPException(status_code=400, detail="The second message must be a user message")
+    if len(messages) > 2:
+        if messages[0].role != "system":
+            # 设置默认的 system message
+            messages.insert(0, SystemMessage(content="You are a helpful assistant."))
+        if messages[1].role != "user":
+            raise HTTPException(status_code=400, detail="The second message must be a user message")
+        if messages[-1].role != "user":
+            raise HTTPException(status_code=400, detail="The last message must be a user message")
+    return messages
+
+
+def get_chat_template(messages: List[ChatMessage]) -> List[ChatMessage]:
     system_message = ""
     conversation_history = []
     user_message = ""
@@ -171,19 +200,27 @@ def get_chat_template(messages: List[ChatMessage]) -> str:
             system_message = msg.content
         elif msg.role == "user":
             if conversation_history or user_message:
-                conversation_history.append(f"User: {user_message}")
+                conversation_history.append(f"<s>[INST] User: {user_message} [/INST]</s>")
             user_message = msg.content
         elif msg.role == "assistant":
-            conversation_history.append(f"Assistant: {msg.content}")
+            conversation_history.append(f"<s>[INST] Assistant: {msg.content} [/INST]</s>")
 
     conversation_str = "\n".join(conversation_history)
     
-    template = f"""
-        System: {system_message}
+    template = textwrap.dedent(f"""
+        <s>[INST] system: {system_message} \n\n
+        {conversation_str}
+        User: {user_message} [/INST]</s>
+        <s>[INST] Assistant: 
+    """)
+
+    template_old = f"""
+        System: {system_message} \n\n
 
         {conversation_str}
         User: {user_message}
-        Assistant: """
+        Assistant: 
+    """
 
     return template.strip()
 
@@ -207,8 +244,7 @@ async def process_queue():
             logger.info("Request processed and marked as done")
 
 if __name__ == "__main__":
-    import uvicorn
-    args = parse_args()
+    logger.info(f"Working dir: {os.getcwd()}")
     logger.info(f"Loading model from path: {args.model_path}")
     logger.info("Starting FastAPI server")
     uvicorn.run("fastapi_server:app", host=args.host, port=args.port)
